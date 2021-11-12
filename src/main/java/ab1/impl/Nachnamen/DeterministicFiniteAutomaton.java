@@ -7,16 +7,15 @@ import java.util.Set;
 
 public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomaton implements DFA {
 
-    int currentState;
+
 
     public DeterministicFiniteAutomaton(int numStates, Set<Character> alphabet, Set<Integer> acceptingStates, int initialState) {
         super(numStates, alphabet, acceptingStates, initialState);
-        currentState = 0;
     }
 
     @Override
     public void reset() {
-        currentState = 0;
+        currentState = super.initialState;
     }
 
     @Override

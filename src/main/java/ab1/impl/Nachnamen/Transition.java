@@ -4,9 +4,9 @@ public class Transition {
 
     private int fromState;
     private int toState;
-    private char reading;
+    private Character reading;
 
-    public Transition(int fromState, int toState, char reading) {
+    public Transition(int fromState, int toState, Character reading) {
         this.fromState = fromState;
         this.toState = toState;
         this.reading = reading;
@@ -20,7 +20,7 @@ public class Transition {
         return toState;
     }
 
-    public char getReading() {
+    public Character getReading() {
         return reading;
     }
 }

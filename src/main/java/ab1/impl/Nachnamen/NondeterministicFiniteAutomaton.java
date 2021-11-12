@@ -4,6 +4,7 @@ import ab1.DFA;
 import ab1.NFA;
 import ab1.exceptions.IllegalCharacterException;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,14 +15,18 @@ public class NondeterministicFiniteAutomaton implements NFA {
     Set<Integer> acceptingStates;
     int initialState;
     Set<Transition> transitions;
+    int currentState;
 
     public NondeterministicFiniteAutomaton(int numStates, Set<Character> alphabet, Set<Integer> acceptingStates, int initialState) {
         this.numStates = numStates;
         this.alphabet = alphabet;
         this.acceptingStates = acceptingStates;
-        this.initialState = initialState;
+        this.currentState = initialState;
         transitions = new HashSet<>();
+        alphabet.add(null);
     }
+
+
 
     @Override
     public Set<Character> getAlphabet() {
@@ -143,14 +148,56 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     @Override
     public DFA toDFA() {
-        // TODO
-        return null;
+        int numStatesDFA = 1;
+        HashMap<Integer, Set<Integer>> ez = new HashMap<>();
+        Set<Integer> subStates = new HashSet<>();
+        DFA dfa = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, acceptingStates, 0);
+        for (int i = 0; i < numStatesDFA;) {
+            for (Character c : alphabet) {
+                Set<Integer> subSubStates = new HashSet<>();
+                for (Integer state : subStates) {
+                    subSubStates = findReachableStates(state, c);
+                    subStates.addAll(subSubStates);
+                }
+                if (!subStates.isEmpty()) {
+                    // IF state in hashmap, dont create new one, set transition to existing state
+                    dfa.setTransition(numStatesDFA, c, numStatesDFA++);
+                }
+                ez.put(i++, subStates);
+            }
+        }
+        return new DeterministicFiniteAutomaton(numStatesDFA, alphabet, acceptingStates, 0);
+    }
+
+    private Set<Integer> findReachableStates(int initialState, Character c) {
+        Set<Integer> states = new HashSet<>();
+        // Find all reachable states with c or epsilon and add them to a subset for the DFA
+        Set<Integer> nextStatesForC = getNextStates(initialState,c);
+        states.addAll(nextStatesForC);
+        for (Integer state : nextStatesForC) {
+            states.addAll(findReachableStatesEpsilon(state));
+        }
+        return states;
+    }
+
+    private Set<Integer> findReachableStatesEpsilon(int initialState, Set<Integer> resultStates) {
+        if (resultStates.contains(initialState)) {
+            return resultStates;
+        }
+        for (Integer state : getNextStates(initialState, null)) {
+            findReachableStatesEpsilon(state, resultStates);
+            resultStates.add(state);
+        }
+        return resultStates;
+    }
+
+    private Set<Integer> findReachableStatesEpsilon(int initialState) {
+        return findReachableStatesEpsilon(initialState, new HashSet<>());
     }
 
     @Override
     public Boolean accepts(String w) throws IllegalCharacterException {
-        // TODO
-        return null;
+        return this.toDFA().accepts(w);
     }
 
     @Override
