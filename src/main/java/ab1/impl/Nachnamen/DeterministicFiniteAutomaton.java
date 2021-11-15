@@ -8,7 +8,6 @@ import java.util.Set;
 public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomaton implements DFA {
 
 
-
     public DeterministicFiniteAutomaton(int numStates, Set<Character> alphabet, Set<Integer> acceptingStates, int initialState) {
         super(numStates, alphabet, acceptingStates, initialState);
     }
@@ -51,7 +50,29 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
     public boolean isInAcceptingState() {
         if (super.acceptingStates.contains(currentState)) {
             return true;
+        } else return false;
+    }
+
+    @Override
+    public Boolean accepts(String w) throws IllegalCharacterException{
+        char [] word = w.toCharArray();
+        for (int i = 0; i < word.length; i++) {
+            if (i == word.length - 1 && isInAcceptingState()){
+                return true;
+            }
+            else if (i < word.length){
+                try {
+                    doStep(word[i]);
+                }
+                catch (IllegalCharacterException e){
+                    return false;
+                }
+                catch (IllegalStateException e){
+                    return false;
+                }
+
+            }
         }
-        else return false;
+        return false;
     }
 }

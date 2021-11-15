@@ -26,8 +26,6 @@ public class NondeterministicFiniteAutomaton implements NFA {
         alphabet.add(null);
     }
 
-
-
     @Override
     public Set<Character> getAlphabet() {
         return alphabet;
