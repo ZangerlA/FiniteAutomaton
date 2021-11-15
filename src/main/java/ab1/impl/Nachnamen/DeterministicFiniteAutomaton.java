@@ -47,6 +47,10 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         throw new IllegalStateException();
     }
 
+    public void setNumStates(int numberOfStates) {
+        super.numStates = numberOfStates;
+    }
+
     @Override
     public boolean isInAcceptingState() {
         if (super.acceptingStates.contains(currentState)) {
