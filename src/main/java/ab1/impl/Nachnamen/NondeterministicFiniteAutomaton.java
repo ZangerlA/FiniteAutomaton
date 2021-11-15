@@ -6,6 +6,7 @@ import ab1.exceptions.IllegalCharacterException;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class NondeterministicFiniteAutomaton implements NFA {
@@ -55,6 +56,15 @@ public class NondeterministicFiniteAutomaton implements NFA {
         return new Set[0][];
     }
 
+    /**
+     * Add a new transition to this FA.
+     *
+     * @param fromState fromState
+     * @param c
+     * @param toState toState
+     * @throws IllegalStateException
+     * @throws IllegalCharacterException
+     */
     @Override
     public void setTransition(int fromState, Character c, int toState) throws IllegalStateException, IllegalCharacterException {
         if (numStates < fromState || numStates < toState) {
@@ -66,6 +76,13 @@ public class NondeterministicFiniteAutomaton implements NFA {
         transitions.add(new Transition(fromState, toState, c));
     }
 
+    /**
+     * Remove all Transitions with character c and fromState from transitions
+     *
+     * @param fromState Ausgangszustand
+     * @param c das Zeichen
+     * @throws IllegalStateException
+     */
     @Override
     public void clearTransitions(int fromState, Character c) throws IllegalStateException {
         if (numStates < fromState) {
@@ -78,6 +95,15 @@ public class NondeterministicFiniteAutomaton implements NFA {
         }
     }
 
+    /**
+     * Get all possible next states for character c and State state from transitions.
+     *
+     * @param state State
+     * @param c Character
+     * @return
+     * @throws IllegalCharacterException
+     * @throws IllegalStateException
+     */
     @Override
     public Set<Integer> getNextStates(int state, Character c) throws IllegalCharacterException, IllegalStateException {
         if (numStates < state) {
@@ -144,29 +170,92 @@ public class NondeterministicFiniteAutomaton implements NFA {
         return null;
     }
 
+    /**
+     * Calculates the states and transitions for a DFA that equals this NFA.
+     * This method is a mess. Sorry.
+     *
+     * @return dfaResult DFA derived from this NFA
+     */
     @Override
     public DFA toDFA() {
         int numStatesDFA = 1;
+        // This acts as an index for the subStates required to calculate the DFA.
         HashMap<Integer, Set<Integer>> ez = new HashMap<>();
-        Set<Integer> subStates = new HashSet<>();
-        DFA dfa = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, acceptingStates, 0);
-        for (int i = 0; i < numStatesDFA;) {
+        Set<Transition> transitionsDFA = new HashSet<>();
+        Set<Integer> initialState = new HashSet<>();
+        initialState.add(0);
+        ez.put(0, initialState);
+        DeterministicFiniteAutomaton dfa = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, acceptingStates, 0);
+        // i is the current State in the new DFA
+        for (int i = 0; i < numStatesDFA; i++) {
+            Set<Integer> theOGSubset = new HashSet<>();
+            int currentChar = 0;
+            // Find the possible States for every character in the alphabet from the state i.
             for (Character c : alphabet) {
-                Set<Integer> subSubStates = new HashSet<>();
-                for (Integer state : subStates) {
-                    subSubStates = findReachableStates(state, c);
-                    subStates.addAll(subSubStates);
+                for (Integer state : ez.get(i)) {
+                    theOGSubset.addAll(findReachableStates(state, c));
                 }
-                if (!subStates.isEmpty()) {
-                    // IF state in hashmap, dont create new one, set transition to existing state
-                    dfa.setTransition(numStatesDFA, c, numStatesDFA++);
+                // If there are any reachable states with character c from State i...
+                if (!theOGSubset.isEmpty() && c != null) {
+                    // Look up if the subStates in subStates is already a state of the new DFA
+                    // in order to not create duplicate states
+                    if (ez.containsValue(theOGSubset)) {
+                        for (Integer key : ez.keySet()) {
+                            if (ez.get(key).equals(theOGSubset)) {
+                                dfa.setNumStates(numStatesDFA);
+                                transitions.add(new Transition(i,key,c));
+                                dfa.setTransition(i, c, key);
+                            }
+                        }
+                    }
+                    // If the state was not created yet, set Transition to a new state.
+                    else {
+                        numStatesDFA++;
+                        dfa.setNumStates(numStatesDFA);
+                        transitions.add(new Transition(i,i+1+currentChar,c));
+                        dfa.setTransition(i, c, i+1+currentChar);
+                    }
                 }
-                ez.put(i++, subStates);
+                // Safe the subset of all created states to calculate further
+                if (!theOGSubset.isEmpty() && !ez.containsValue(theOGSubset) && c != null) {
+                    ez.put(i+1+currentChar, new HashSet<>(theOGSubset));
+                }
+                theOGSubset.clear();
+                if (c != null) {
+                    currentChar++;
+                }
             }
         }
-        return new DeterministicFiniteAutomaton(numStatesDFA, alphabet, acceptingStates, 0);
+        DFA dfaResult = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, getAcceptingStatesDFAFromIndex(ez), 0);
+        for (Transition t : transitionsDFA) {
+            dfaResult.setTransition(t.getFromState(), t.getReading(), t.getToState());
+        }
+        return dfaResult;
     }
 
+    /**
+     * Find the accepting states for a DFA from the index created from the NFA
+     * @param subStateIndex the index for subStates
+     * @return all accepting States
+     */
+    private Set<Integer> getAcceptingStatesDFAFromIndex(Map<Integer, Set<Integer>> subStateIndex) {
+        Set<Integer> acceptingStatesResult = new HashSet<>();
+        for (Set<Integer> states : subStateIndex.values()) {
+            for (Integer state : states) {
+                if (this.acceptingStates.contains(state)) {
+                    acceptingStatesResult.add(state);
+                }
+            }
+        }
+        return acceptingStatesResult;
+    }
+
+    /**
+     * Find all reachable states with the given character c from state initialState.
+     * @param initialState
+     * @param c
+     * @return Set of states that are reachable.
+     */
     private Set<Integer> findReachableStates(int initialState, Character c) {
         Set<Integer> states = new HashSet<>();
         // Find all reachable states with c or epsilon and add them to a subset for the DFA
@@ -178,6 +267,12 @@ public class NondeterministicFiniteAutomaton implements NFA {
         return states;
     }
 
+    /**
+     * Recursively find all reachable states via epsilon transitions from a given initialState.
+     * @param initialState
+     * @param resultStates
+     * @return Set of states that are reachable.
+     */
     private Set<Integer> findReachableStatesEpsilon(int initialState, Set<Integer> resultStates) {
         if (resultStates.contains(initialState)) {
             return resultStates;
