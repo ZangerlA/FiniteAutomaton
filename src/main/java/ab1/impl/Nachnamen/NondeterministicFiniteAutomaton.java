@@ -203,7 +203,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
                         for (Integer key : ez.keySet()) {
                             if (ez.get(key).equals(theOGSubset)) {
                                 dfa.setNumStates(numStatesDFA);
-                                transitions.add(new Transition(i,key,c));
+                                transitionsDFA.add(new Transition(i,key,c));
                                 dfa.setTransition(i, c, key);
                             }
                         }
@@ -212,7 +212,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
                     else {
                         numStatesDFA++;
                         dfa.setNumStates(numStatesDFA);
-                        transitions.add(new Transition(i,i+1+currentChar,c));
+                        transitionsDFA.add(new Transition(i,i+1+currentChar,c));
                         dfa.setTransition(i, c, i+1+currentChar);
                     }
                 }
@@ -228,6 +228,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
         }
         DFA dfaResult = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, getAcceptingStatesDFAFromIndex(ez), 0);
         for (Transition t : transitionsDFA) {
+            //System.out.println(t.getFromState() + " " + t.getReading() + " " + t.getToState());
             dfaResult.setTransition(t.getFromState(), t.getReading(), t.getToState());
         }
         return dfaResult;
@@ -240,10 +241,10 @@ public class NondeterministicFiniteAutomaton implements NFA {
      */
     private Set<Integer> getAcceptingStatesDFAFromIndex(Map<Integer, Set<Integer>> subStateIndex) {
         Set<Integer> acceptingStatesResult = new HashSet<>();
-        for (Set<Integer> states : subStateIndex.values()) {
-            for (Integer state : states) {
+        for (Integer i : subStateIndex.keySet()) {
+            for (Integer state : subStateIndex.get(i)) {
                 if (this.acceptingStates.contains(state)) {
-                    acceptingStatesResult.add(state);
+                    acceptingStatesResult.add(i);
                 }
             }
         }

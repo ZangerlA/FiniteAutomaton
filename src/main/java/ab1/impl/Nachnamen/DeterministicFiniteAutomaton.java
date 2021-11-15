@@ -60,8 +60,8 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
     @Override
     public Boolean accepts(String w) throws IllegalCharacterException{
         char [] word = w.toCharArray();
-        for (int i = 0; i < word.length; i++) {
-            if (i == word.length - 1 && isInAcceptingState()){
+        for (int i = 0; i <= word.length; i++) {
+            if (i == word.length && isInAcceptingState()){
                 return true;
             }
             else if (i < word.length){
