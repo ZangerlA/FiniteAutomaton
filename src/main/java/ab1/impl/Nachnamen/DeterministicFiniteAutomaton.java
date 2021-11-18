@@ -79,4 +79,19 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         }
         return false;
     }
+
+    @Override
+    public Boolean acceptsNothing() {
+        return super.acceptsNothing();
+    }
+
+    @Override
+    public Boolean acceptsEpsilonOnly() {
+        return super.acceptsEpsilonOnly();
+    }
+
+    @Override
+    public Boolean acceptsEpsilon() {
+        return super.acceptsEpsilon();
+    }
 }
