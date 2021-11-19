@@ -86,8 +86,11 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         if (this.getAcceptingStates() == null || this.getAcceptingStates().isEmpty()){
             return true;
         }
-        if (getAcceptingStates().contains(initialState) || initialToEndState()){
-            return false;
+        Set<Integer> starttoend = traverseAutomaton(initialState, new HashSet<>());
+        for (Integer i: starttoend) {
+            if (getAcceptingStates().contains(i)){
+                return false;
+            }
         }
         return true;
     }
