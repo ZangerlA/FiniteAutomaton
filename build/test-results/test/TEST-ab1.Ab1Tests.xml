@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="ab1.Ab1Tests" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-11-18T17:51:10" hostname="MAYONAISSE" time="0.043">
+<testsuite name="ab1.Ab1Tests" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-11-19T10:58:12" hostname="MAYONAISSE" time="0.041">
   <properties/>
-  <testcase name="NFA_Language()" classname="ab1.Ab1Tests" time="0.043"/>
+  <testcase name="NFA_Language()" classname="ab1.Ab1Tests" time="0.041"/>
   <system-out><![CDATA[Gesamtpunkte: 1
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>

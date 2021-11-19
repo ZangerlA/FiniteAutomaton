@@ -180,50 +180,43 @@ public class NondeterministicFiniteAutomaton implements NFA {
     public DFA toDFA() {
         int numStatesDFA = 1;
         // This acts as an index for the subStates required to calculate the DFA.
-        HashMap<Integer, Set<Integer>> ez = new HashMap<>();
+        HashMap<Integer, Set<Integer>> subStateIndex = new HashMap<>();
         Set<Transition> transitionsDFA = new HashSet<>();
         Set<Integer> initialState = new HashSet<>();
         initialState.add(this.initialState);
         initialState.addAll(findReachableStatesEpsilon(this.initialState));
-        ez.put(0, initialState);
-        DeterministicFiniteAutomaton dfa = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, acceptingStates, 0);
+        subStateIndex.put(0, initialState);
+
         // i is the current State in the new DFA
         for (int i = 0; i < numStatesDFA; i++) {
-            Set<Integer> theOGSubset = new HashSet<>();
+            Set<Integer> subStates = new HashSet<>();
             // Find the possible States for every character in the alphabet from the state i.
             for (Character c : alphabet) {
-                for (Integer state : ez.get(i)) {
-                    theOGSubset.addAll(findReachableStates(state, c));
+                for (Integer state : subStateIndex.get(i)) {
+                    subStates.addAll(findReachableStates(state, c));
                 }
                 // If there are any reachable states with character c from State i...
-                if (!theOGSubset.isEmpty() && c != null) {
+                if (!subStates.isEmpty() && c != null) {
                     // Look up if the subStates in subStates is already a state of the new DFA
                     // in order to not create duplicate states
-                    if (ez.containsValue(theOGSubset)) {
-                        for (Integer key : ez.keySet()) {
-                            if (ez.get(key).equals(theOGSubset)) {
-                                dfa.setNumStates(numStatesDFA);
+                    if (subStateIndex.containsValue(subStates)) {
+                        for (Integer key : subStateIndex.keySet()) {
+                            if (subStateIndex.get(key).equals(subStates)) {
                                 transitionsDFA.add(new Transition(i,key,c));
-                                dfa.setTransition(i, c, key);
                             }
                         }
                     }
-                    // If the state was not created yet, set Transition to a new state.
+                    // If the state was not created yet, set Transition to a new state and safe in index.
                     else {
                         numStatesDFA++;
-                        dfa.setNumStates(numStatesDFA);
                         transitionsDFA.add(new Transition(i,numStatesDFA-1,c));
-                        dfa.setTransition(i, c, numStatesDFA-1);
+                        subStateIndex.put(numStatesDFA-1, new HashSet<>(subStates));
                     }
                 }
-                // Safe the subset of all created states to calculate further
-                if (!theOGSubset.isEmpty() && !ez.containsValue(theOGSubset) && c != null) {
-                    ez.put(numStatesDFA-1, new HashSet<>(theOGSubset));
-                }
-                theOGSubset.clear();
+                subStates.clear();
             }
         }
-        DFA dfaResult = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, getAcceptingStatesDFAFromIndex(ez), 0);
+        DFA dfaResult = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, getAcceptingStatesDFAFromIndex(subStateIndex), 0);
         for (Transition t : transitionsDFA) {
             dfaResult.setTransition(t.getFromState(), t.getReading(), t.getToState());
         }
@@ -280,7 +273,6 @@ public class NondeterministicFiniteAutomaton implements NFA {
         for (Integer state : getNextStates(initialState, null)) {
             resultStates.add(state);
             findReachableStatesEpsilon(state, resultStates);
-
         }
         return resultStates;
     }
@@ -296,20 +288,17 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     @Override
     public Boolean acceptsNothing() {
-        // TODO
-        return null;
+        this.toDFA().acceptsNothing();
     }
 
     @Override
     public Boolean acceptsEpsilonOnly() {
-        // TODO
-        return null;
+        this.toDFA().acceptsEpsilonOnly();
     }
 
     @Override
     public Boolean acceptsEpsilon() {
-        // TODO
-        return null;
+        this.toDFA().acceptsEpsilon();
     }
 
     @Override
