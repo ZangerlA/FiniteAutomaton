@@ -50,10 +50,27 @@ public class NondeterministicFiniteAutomaton implements NFA {
         else throw new IllegalArgumentException();
     }
 
+    /**
+     * i is FromState, j is ToState, value is possible characters for this transition.
+     * @return Transition Matrix
+     */
     @Override
     public Set<Character>[][] getTransitions() {
-        // TODO
-        return new Set[0][];
+        Set<Character>[][] result = new Set[numStates][numStates];
+        Set<Character> charSet = new HashSet<>();
+
+        for (int i = 0; i < result.length; i++) {
+            for (int j = 0; j < result[0].length; j++) {
+                charSet.clear();
+                for (Transition t : transitions) {
+                    if (t.getFromState() == i && t.getToState() == j) {
+                        charSet.add(t.getReading());
+                    }
+                }
+                result[i][j] = new HashSet<>(charSet);
+            }
+        }
+        return result;
     }
 
     /**

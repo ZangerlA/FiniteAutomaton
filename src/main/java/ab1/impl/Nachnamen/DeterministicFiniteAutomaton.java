@@ -87,7 +87,27 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean acceptsEpsilonOnly() {
-        return super.acceptsEpsilonOnly();
+        if (acceptingStates.size() == 1 && acceptingStates.contains(initialState)) {
+            return true;
+        }
+        return false;
+    }
+
+    public Set<Integer> traverseAutomaton(Integer initialState, Set<Integer> resultStates) {
+        if (resultStates.contains(initialState)) {
+            return resultStates;
+        }
+        for (Transition t : transitions) {
+            if (t.getFromState() == initialState) {
+                resultStates.add(initialState);
+                traverseAutomaton(t.getToState(), resultStates);
+
+            }
+            else {
+                resultStates.add(initialState);
+            }
+        }
+        return resultStates;
     }
 
     @Override
