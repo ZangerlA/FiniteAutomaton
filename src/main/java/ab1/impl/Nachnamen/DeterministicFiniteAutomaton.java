@@ -3,6 +3,7 @@ package ab1.impl.Nachnamen;
 import ab1.DFA;
 import ab1.exceptions.IllegalCharacterException;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomaton implements DFA {
@@ -82,7 +83,13 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean acceptsNothing() {
-        return super.acceptsNothing();
+        if (this.getAcceptingStates() == null || this.getAcceptingStates().isEmpty()){
+            return true;
+        }
+        if (getAcceptingStates().contains(initialState) || initialToEndState()){
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -112,6 +119,35 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean acceptsEpsilon() {
-        return super.acceptsEpsilon();
+        return accepts("");
+    }
+
+    public Boolean initialToEndState(){
+        Set<Integer> cStates = new HashSet<Integer>();
+        cStates.add(initialState);
+        Set<Integer> nStates = new HashSet<Integer>();
+
+        for (Integer i: cStates) {
+            for (Character c: alphabet) {
+                for (Transition t: transitions) {
+                    if (t.getReading() == c && t.getFromState() == i){
+                        nStates.add(t.getToState());
+                    }
+                }
+            }
+            for (Integer is: cStates) {
+                if (nStates.contains(is)){
+                    nStates.remove(is);
+                }
+            }
+            cStates = nStates;
+            nStates = null;
+            for (Integer state: cStates) {
+                if (acceptingStates.contains(state)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
