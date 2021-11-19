@@ -25,7 +25,11 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public int doStep(char c) throws IllegalCharacterException, IllegalStateException {
-        return currentState = getNextState(currentState, c);
+        currentState = getNextState(currentState, c);
+        if (currentState == null) {
+            return -1;
+        }
+        return currentState;
     }
 
     @Override
@@ -43,8 +47,8 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
                 return t.getToState();
             }
         }
-        // Throw when there is no existing transition for this character and currentState
-        throw new IllegalStateException();
+        // Null (Trap) when there is no existing transition for this character and currentState
+        return null;
     }
 
     public void setNumStates(int numberOfStates) {
@@ -60,6 +64,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean accepts(String w) throws IllegalCharacterException{
+        this.reset();
         char [] word = w.toCharArray();
         for (int i = 0; i <= word.length; i++) {
             if (i == word.length && isInAcceptingState()){
@@ -67,7 +72,10 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
             }
             else if (i < word.length){
                 try {
-                    doStep(word[i]);
+                    // -1 is Trap
+                    if (doStep(word[i]) == -1) {
+                        return false;
+                    }
                 }
                 catch (IllegalCharacterException e){
                     return false;
@@ -97,17 +105,30 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean acceptsEpsilonOnly() {
-        Set<Integer> reachableStates = traverseAutomaton(initialState, new HashSet<>());
-        for (Integer reachable : reachableStates) {
-            if (acceptingStates.contains(reachable) && reachable != initialState) {
+        if (!acceptingStates.contains(initialState)) {
+            return false;
+        }
+        for (Transition t : transitions) {
+            if (t.getFromState() == initialState && t.getToState() == initialState) {
                 return false;
             }
         }
-        return true;
+        boolean result = true;
+        Set<Integer> reachableStates = traverseAutomaton(initialState, new HashSet<>());
+        for (Integer reachable : reachableStates) {
+            if (acceptingStates.contains(reachable) && reachable != initialState) {
+                result = false;
+            }
+        }
+        return result;
     }
 
     public Set<Integer> traverseAutomaton(Integer initialState, Set<Integer> resultStates) {
         if (resultStates.contains(initialState)) {
+            return resultStates;
+        }
+        if (transitions.isEmpty()) {
+            resultStates.add(this.initialState);
             return resultStates;
         }
         for (Transition t : transitions) {
@@ -155,5 +176,10 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
     }
 }

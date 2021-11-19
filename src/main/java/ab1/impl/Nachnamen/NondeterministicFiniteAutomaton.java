@@ -16,7 +16,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
     Set<Integer> acceptingStates;
     int initialState;
     Set<Transition> transitions;
-    int currentState;
+    Integer currentState;
 
     public NondeterministicFiniteAutomaton(int numStates, Set<Character> alphabet, Set<Integer> acceptingStates, int initialState) {
         this.numStates = numStates;
@@ -322,5 +322,10 @@ public class NondeterministicFiniteAutomaton implements NFA {
     public boolean subSetOf(NFA b) {
         // TODO
         return false;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this.toDFA().equals(obj);
     }
 }

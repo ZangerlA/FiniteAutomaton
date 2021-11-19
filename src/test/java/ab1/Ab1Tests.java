@@ -1267,6 +1267,7 @@ public class Ab1Tests {
 
 	@Test
 	public void ToDFA() {
+
 		testToDFA(n1);
 		testToDFA(n2);
 		testToDFA(n3);
