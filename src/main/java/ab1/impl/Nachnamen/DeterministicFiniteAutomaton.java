@@ -82,7 +82,10 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean acceptsNothing() {
-        return super.acceptsNothing();
+        if (this.getAcceptingStates() == null){
+            return true;
+        }
+        return false;
     }
 
     @Override
