@@ -94,10 +94,13 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean acceptsEpsilonOnly() {
-        if (acceptingStates.size() == 1 && acceptingStates.contains(initialState)) {
-            return true;
+        Set<Integer> reachableStates = traverseAutomaton(initialState, new HashSet<>());
+        for (Integer reachable : reachableStates) {
+            if (acceptingStates.contains(reachable) && reachable != initialState) {
+                return false;
+            }
         }
-        return false;
+        return true;
     }
 
     public Set<Integer> traverseAutomaton(Integer initialState, Set<Integer> resultStates) {
