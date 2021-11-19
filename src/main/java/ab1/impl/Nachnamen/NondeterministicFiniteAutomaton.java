@@ -288,17 +288,17 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     @Override
     public Boolean acceptsNothing() {
-        this.toDFA().acceptsNothing();
+        return this.toDFA().acceptsNothing();
     }
 
     @Override
     public Boolean acceptsEpsilonOnly() {
-        this.toDFA().acceptsEpsilonOnly();
+        return this.toDFA().acceptsEpsilonOnly();
     }
 
     @Override
     public Boolean acceptsEpsilon() {
-        this.toDFA().acceptsEpsilon();
+        return this.toDFA().acceptsEpsilon();
     }
 
     @Override
