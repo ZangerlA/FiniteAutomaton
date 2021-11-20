@@ -52,9 +52,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public boolean isInAcceptingState() {
-        if (super.acceptingStates.contains(currentState)) {
-            return true;
-        } else return false;
+        return super.acceptingStates.contains(currentState);
     }
 
     @Override
@@ -68,10 +66,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
                 try {
                     doStep(word[i]);
                 }
-                catch (IllegalCharacterException e){
-                    return false;
-                }
-                catch (IllegalStateException e){
+                catch (IllegalCharacterException | IllegalStateException e){
                     return false;
                 }
 
