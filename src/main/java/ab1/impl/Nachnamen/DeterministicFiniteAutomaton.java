@@ -4,6 +4,7 @@ import ab1.DFA;
 import ab1.NFA;
 import ab1.exceptions.IllegalCharacterException;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomaton implements DFA {
@@ -25,7 +26,11 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public int doStep(char c) throws IllegalCharacterException, IllegalStateException {
-        return currentState = getNextState(currentState, c);
+        currentState = getNextState(currentState, c);
+        if (currentState == null) {
+            return -1;
+        }
+        return currentState;
     }
 
     @Override
@@ -43,8 +48,8 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
                 return t.getToState();
             }
         }
-        // Throw when there is no existing transition for this character and currentState
-        throw new IllegalStateException();
+        // Null (Trap) when there is no existing transition for this character and currentState
+        return null;
     }
 
     public void setNumStates(int numberOfStates) {
@@ -65,7 +70,10 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
             }
             else if (i < word.length){
                 try {
-                    doStep(word[i]);
+                    // -1 is Trap
+                    if (doStep(word[i]) == -1) {
+                        return false;
+                    }
                 }
                 catch (IllegalCharacterException | IllegalStateException e){
                     return false;
@@ -75,7 +83,6 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         }
         return false;
     }
-
     /**
      * Returns the transitions exactly how they're saved in the object
      *
@@ -90,7 +97,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         DFA dfaB;
         if (b instanceof DFA) {
             dfaB = ((DFA) b);
-        } else if (b instanceof NFA){
+        } else if (b instanceof NFA) {
             dfaB = ((NFA) b).toDFA();
         } else {
             throw new IllegalArgumentException("b should be of type NFA");
@@ -100,5 +107,94 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         NFA diffBA = dfaB.minus(this);
 
         return diffAB.acceptsNothing() && diffBA.acceptsNothing();
+    }
+
+    @Override
+    public Boolean acceptsNothing() {
+        if (this.getAcceptingStates() == null || this.getAcceptingStates().isEmpty()){
+            return true;
+        }
+        Set<Integer> starttoend = traverseAutomaton(initialState, new HashSet<>());
+        for (Integer i: starttoend) {
+            if (getAcceptingStates().contains(i)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean acceptsEpsilonOnly() {
+        if (!acceptingStates.contains(initialState)) {
+            return false;
+        }
+        for (Transition t : transitions) {
+            if (t.getFromState() == initialState && t.getToState() == initialState) {
+                return false;
+            }
+        }
+        boolean result = true;
+        Set<Integer> reachableStates = traverseAutomaton(initialState, new HashSet<>());
+        for (Integer reachable : reachableStates) {
+            if (acceptingStates.contains(reachable) && reachable != initialState) {
+                result = false;
+            }
+        }
+        return result;
+    }
+
+    public Set<Integer> traverseAutomaton(Integer initialState, Set<Integer> resultStates) {
+        if (resultStates.contains(initialState)) {
+            return resultStates;
+        }
+        if (transitions.isEmpty()) {
+            resultStates.add(this.initialState);
+            return resultStates;
+        }
+        for (Transition t : transitions) {
+            if (t.getFromState() == initialState) {
+                resultStates.add(initialState);
+                traverseAutomaton(t.getToState(), resultStates);
+
+            }
+            else {
+                resultStates.add(initialState);
+            }
+        }
+        return resultStates;
+    }
+
+    @Override
+    public Boolean acceptsEpsilon() {
+        return accepts("");
+    }
+
+    public Boolean initialToEndState(){
+        Set<Integer> cStates = new HashSet<Integer>();
+        cStates.add(initialState);
+        Set<Integer> nStates = new HashSet<Integer>();
+
+        for (Integer i: cStates) {
+            for (Character c: alphabet) {
+                for (Transition t: transitions) {
+                    if (t.getReading() == c && t.getFromState() == i){
+                        nStates.add(t.getToState());
+                    }
+                }
+            }
+            for (Integer is: cStates) {
+                if (nStates.contains(is)){
+                    nStates.remove(is);
+                }
+            }
+            cStates = nStates;
+            nStates = null;
+            for (Integer state: cStates) {
+                if (acceptingStates.contains(state)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

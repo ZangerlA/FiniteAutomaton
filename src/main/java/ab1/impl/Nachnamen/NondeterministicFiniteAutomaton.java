@@ -13,7 +13,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
     Set<Integer> acceptingStates;
     int initialState;
     Set<Transition> transitions;
-    int currentState;
+    Integer currentState;
 
     public NondeterministicFiniteAutomaton(int numStates, Set<Character> alphabet, Set<Integer> acceptingStates, int initialState) {
         this.numStates = numStates;
@@ -43,7 +43,8 @@ public class NondeterministicFiniteAutomaton implements NFA {
     public boolean isAcceptingState(int s) throws IllegalStateException {
         if (acceptingStates.contains(s)) {
             return true;
-        } else throw new IllegalArgumentException();
+        }
+        else throw new IllegalArgumentException();
     }
 
     @SuppressWarnings("unchecked")
@@ -259,54 +260,44 @@ public class NondeterministicFiniteAutomaton implements NFA {
     public DFA toDFA() {
         int numStatesDFA = 1;
         // This acts as an index for the subStates required to calculate the DFA.
-        HashMap<Integer, Set<Integer>> ez = new HashMap<>();
+        HashMap<Integer, Set<Integer>> subStateIndex = new HashMap<>();
         Set<Transition> transitionsDFA = new HashSet<>();
         Set<Integer> initialState = new HashSet<>();
-        initialState.add(0);
-        ez.put(0, initialState);
-        DeterministicFiniteAutomaton dfa = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, acceptingStates, 0);
+        initialState.add(this.initialState);
+        initialState.addAll(findReachableStatesEpsilon(this.initialState));
+        subStateIndex.put(0, initialState);
+
         // i is the current State in the new DFA
         for (int i = 0; i < numStatesDFA; i++) {
-            Set<Integer> theOGSubset = new HashSet<>();
-            int currentChar = 0;
+            Set<Integer> subStates = new HashSet<>();
             // Find the possible States for every character in the alphabet from the state i.
             for (Character c : alphabet) {
-                for (Integer state : ez.get(i)) {
-                    theOGSubset.addAll(findReachableStates(state, c));
+                for (Integer state : subStateIndex.get(i)) {
+                    subStates.addAll(findReachableStates(state, c));
                 }
                 // If there are any reachable states with character c from State i...
-                if (!theOGSubset.isEmpty() && c != null) {
-                    // Look up if the subState in subStates is already a state of the new DFA
+                if (!subStates.isEmpty() && c != null) {
+                    // Look up if the subStates in subStates is already a state of the new DFA
                     // in order to not create duplicate states
-                    if (ez.containsValue(theOGSubset)) {
-                        for (Integer key : ez.keySet()) {
-                            if (ez.get(key).equals(theOGSubset)) {
-                                dfa.setNumStates(numStatesDFA);
-                                transitionsDFA.add(new Transition(i, key, c));
-                                dfa.setTransition(i, c, key);
+                    if (subStateIndex.containsValue(subStates)) {
+                        for (Integer key : subStateIndex.keySet()) {
+                            if (subStateIndex.get(key).equals(subStates)) {
+                                transitionsDFA.add(new Transition(i,key,c));
                             }
                         }
                     }
-                    // If the state was not created yet, set Transition to a new state.
+                    // If the state was not created yet, set Transition to a new state and safe in index.
                     else {
-                        dfa.setNumStates(++numStatesDFA);
-                        transitionsDFA.add(new Transition(i, numStatesDFA - 1, c));
-                        dfa.setTransition(i, c, numStatesDFA - 1);
+                        numStatesDFA++;
+                        transitionsDFA.add(new Transition(i,numStatesDFA-1,c));
+                        subStateIndex.put(numStatesDFA-1, new HashSet<>(subStates));
                     }
                 }
-                // Safe the subset of all created states to calculate further
-                if (!theOGSubset.isEmpty() && !ez.containsValue(theOGSubset) && c != null) {
-                    ez.put(i + 1 + currentChar, new HashSet<>(theOGSubset));
-                }
-                theOGSubset.clear();
-                if (c != null) {
-                    currentChar++;
-                }
+                subStates.clear();
             }
         }
-        DFA dfaResult = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, getAcceptingStatesDFAFromIndex(ez), 0);
+        DFA dfaResult = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, getAcceptingStatesDFAFromIndex(subStateIndex), 0);
         for (Transition t : transitionsDFA) {
-            //System.out.println(t.getFromState() + " " + t.getReading() + " " + t.getToState());
             dfaResult.setTransition(t.getFromState(), t.getReading(), t.getToState());
         }
         return dfaResult;
@@ -343,6 +334,9 @@ public class NondeterministicFiniteAutomaton implements NFA {
         Set<Integer> states = new HashSet<>(nextStatesForC);
         for (Integer state : nextStatesForC) {
             states.addAll(findReachableStatesEpsilon(state));
+        }
+        for (Integer i : findReachableStatesEpsilon(initialState)) {
+            states.addAll(getNextStates(i, c));
         }
         return states;
     }
@@ -382,8 +376,8 @@ public class NondeterministicFiniteAutomaton implements NFA {
             return resultStates;
         }
         for (Integer state : getNextStates(initialState, null)) {
-            findReachableStatesEpsilon(state, resultStates);
             resultStates.add(state);
+            findReachableStatesEpsilon(state, resultStates);
         }
         return resultStates;
     }
@@ -399,32 +393,17 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     @Override
     public Boolean acceptsNothing() {
-        return this.acceptingStates.size() == 0;
+        return this.toDFA().acceptsNothing();
     }
 
     @Override
     public Boolean acceptsEpsilonOnly() {
-        boolean acceptsEpsilonOnly = acceptsEpsilon();
-
-        if (acceptsEpsilonOnly) {
-            acceptsEpsilonOnly = this.acceptingStates.stream().noneMatch(state -> findReachableAcceptingStatesNonEpsilon(state).size() > 0);
-        }
-
-        return acceptsEpsilonOnly;
+        return this.toDFA().acceptsEpsilonOnly();
     }
 
     @Override
     public Boolean acceptsEpsilon() {
-
-        boolean acceptsEpsilon = this.acceptingStates.contains(this.initialState);
-
-        if (!acceptsEpsilon) {
-            acceptsEpsilon = this.acceptingStates.stream().anyMatch(state ->
-                    findReachableStatesEpsilon(this.initialState).contains(state)
-            );
-        }
-
-        return acceptsEpsilon;
+        return this.toDFA().acceptsEpsilon();
     }
 
     @Override
