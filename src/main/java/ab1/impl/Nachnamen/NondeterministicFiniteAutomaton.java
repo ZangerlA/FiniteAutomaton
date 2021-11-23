@@ -169,14 +169,12 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     @Override
     public NFA intersection(NFA a) {
-        // TODO
-        return null;
+        return this.complement().union(a.complement()).toDFA().complement();
     }
 
     @Override
     public NFA minus(NFA a) {
-        // TODO
-        return null;
+        return this.intersection(a.complement());
     }
 
     @Override
@@ -206,17 +204,17 @@ public class NondeterministicFiniteAutomaton implements NFA {
     @Override
     public NFA complement() {
 
+        DFA dfa = this.toDFA();
+
         Set<Integer> acceptingStates = new HashSet<>();
 
         for (int i = 0; i < this.numStates; i++) {
-            if (!this.acceptingStates.contains(i)) acceptingStates.add(i);
+            if (!dfa.getAcceptingStates().contains(i)) acceptingStates.add(i);
         }
 
-        NFA complementNFA = new NondeterministicFiniteAutomaton(this.numStates, this.alphabet, acceptingStates, this.initialState);
+        NFA complementNFA = new NondeterministicFiniteAutomaton(dfa.getNumStates(), dfa.getAlphabet(), dfa.getAcceptingStates(), dfa.getInitialState());
 
-        this.transitions.forEach(transition -> complementNFA.setTransition(transition.getFromState(), transition.getReading(), transition.getToState()));
-
-        // TODO Add trap state
+        ((DeterministicFiniteAutomaton) dfa).getRawTransitions().forEach(transition -> complementNFA.setTransition(transition.getFromState(), transition.getReading(), transition.getToState()));
 
         return complementNFA;
     }
@@ -433,5 +431,23 @@ public class NondeterministicFiniteAutomaton implements NFA {
     public boolean subSetOf(NFA b) {
         // TODO
         return false;
+    }
+
+    @Override
+    public boolean equals(Object b) {
+        DFA dfaB;
+        DFA dfaA = this.toDFA();
+        if (b instanceof DFA) {
+            dfaB = ((DFA) b);
+        } else if (b instanceof NFA){
+            dfaB = ((NFA) b).toDFA();
+        } else {
+            throw new IllegalArgumentException("b should be of type NFA");
+        }
+
+        NFA diffAB = dfaA.minus(dfaB);
+        NFA diffBA = dfaB.minus(dfaA);
+
+        return diffAB.acceptsNothing() && diffBA.acceptsNothing();
     }
 }
