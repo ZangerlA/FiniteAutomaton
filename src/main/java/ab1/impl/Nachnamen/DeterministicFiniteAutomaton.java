@@ -83,6 +83,28 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         }
         return false;
     }
+
+    public void addTrapState() {
+        int trapState = this.getNumStates()+1;
+        this.setNumStates(trapState);
+        for (int i = 0; i < this.getNumStates()-1; i++) {
+            Set<Character> tempAlphabet = this.alphabet;
+            tempAlphabet.remove(null);
+            for (Transition t : transitions) {
+                if(t.getFromState() == i && tempAlphabet.contains(t.getReading())) {
+                    tempAlphabet.remove(t.getReading());
+                }
+            }
+            setTransitionToTrapState(i, tempAlphabet, trapState);
+        }
+    }
+
+    private void setTransitionToTrapState(int state, Set<Character> characters, int trapState) {
+        for (Character c : characters) {
+            this.setTransition(state, c, trapState);
+        }
+    }
+
     /**
      * Returns the transitions exactly how they're saved in the object
      *

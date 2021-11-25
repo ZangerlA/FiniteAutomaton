@@ -296,10 +296,11 @@ public class NondeterministicFiniteAutomaton implements NFA {
                 subStates.clear();
             }
         }
-        DFA dfaResult = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, getAcceptingStatesDFAFromIndex(subStateIndex), 0);
+        DeterministicFiniteAutomaton dfaResult = new DeterministicFiniteAutomaton(numStatesDFA, alphabet, getAcceptingStatesDFAFromIndex(subStateIndex), 0);
         for (Transition t : transitionsDFA) {
             dfaResult.setTransition(t.getFromState(), t.getReading(), t.getToState());
         }
+        dfaResult.addTrapState();
         return dfaResult;
     }
 
