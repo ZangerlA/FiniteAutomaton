@@ -1,4 +1,4 @@
-package ab1.impl.Nachnamen;
+package ab1.impl.DuellerGrossmannZangerl;
 
 import ab1.Ab1;
 import ab1.DFA;

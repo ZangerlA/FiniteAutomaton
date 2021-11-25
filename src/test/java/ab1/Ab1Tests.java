@@ -1,28 +1,14 @@
 package ab1;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import ab1.impl.DuellerGrossmannZangerl.Ab1Impl;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.*;
 
-import ab1.Ab1;
-import ab1.NFA;
-import ab1.DFA;
-
-import ab1.impl.Nachnamen.Ab1Impl;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Ab1Tests {
 	private NFA n1; // leere Menge

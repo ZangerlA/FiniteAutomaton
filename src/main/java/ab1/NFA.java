@@ -1,8 +1,8 @@
 package ab1;
 
-import java.util.Set;
-
 import ab1.exceptions.IllegalCharacterException;
+
+import java.util.Set;
 
 /**
  * Schnittstelle eines NFA. Der Automat numeriert die Zustände von 0 * bis
