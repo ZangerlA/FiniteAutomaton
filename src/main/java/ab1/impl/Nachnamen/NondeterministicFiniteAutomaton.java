@@ -14,6 +14,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
     int initialState;
     Set<Transition> transitions;
     Integer currentState;
+    Integer trapState = null;
 
     public NondeterministicFiniteAutomaton(int numStates, Set<Character> alphabet, Set<Integer> acceptingStates, int initialState) {
         this.numStates = numStates;
@@ -300,7 +301,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
         for (Transition t : transitionsDFA) {
             dfaResult.setTransition(t.getFromState(), t.getReading(), t.getToState());
         }
-        dfaResult.addTrapState();
+        //dfaResult.addTrapState();
         return dfaResult;
     }
 

@@ -63,14 +63,17 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean accepts(String w) throws IllegalCharacterException{
+        this.reset();
         char [] word = w.toCharArray();
         for (int i = 0; i <= word.length; i++) {
             if (i == word.length && isInAcceptingState()){
                 return true;
             }
+            if (currentState == trapState) {
+                return false;
+            }
             else if (i < word.length){
                 try {
-                    // -1 is Trap
                     if (doStep(word[i]) == -1) {
                         return false;
                     }
@@ -85,8 +88,8 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
     }
 
     public void addTrapState() {
-        int trapState = this.getNumStates()+1;
-        this.setNumStates(trapState);
+        super.trapState = this.getNumStates();
+        this.setNumStates(this.getNumStates()+1);
         for (int i = 0; i < this.getNumStates()-1; i++) {
             Set<Character> tempAlphabet = this.alphabet;
             tempAlphabet.remove(null);
@@ -102,6 +105,11 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
     private void setTransitionToTrapState(int state, Set<Character> characters, int trapState) {
         for (Character c : characters) {
             this.setTransition(state, c, trapState);
+        }
+        for (Character c : alphabet) {
+            if (c != null) {
+                this.setTransition(trapState, c, trapState);
+            }
         }
     }
 
