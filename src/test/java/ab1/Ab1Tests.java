@@ -323,7 +323,7 @@ public class Ab1Tests {
 		testLanguageNFA10(n10);
 		testLanguageNFA11(n11);
 		testLanguageNFA12(n12);
-		
+
 		gesamtPunkte++;
 	}
 
@@ -341,7 +341,7 @@ public class Ab1Tests {
 		testPropertiesNFA10(n10);
 		testPropertiesNFA11(n11);
 		testPropertiesNFA12(n12);
-		
+
 		gesamtPunkte++;
 	}
 
@@ -466,7 +466,7 @@ public class Ab1Tests {
 		assertFalse(n.accepts("aa"));
 		assertTrue(n.accepts("ab"));
 		assertTrue(n.accepts("abc"));
-		
+
 		gesamtPunkte++;
 	}
 
@@ -592,7 +592,7 @@ public class Ab1Tests {
 		assertFalse(n.accepts("aa"));
 		assertFalse(n.accepts("ab"));
 		assertTrue(n.accepts("abc"));
-		
+
 		gesamtPunkte++;
 	}
 
@@ -719,7 +719,7 @@ public class Ab1Tests {
 		assertFalse(n.accepts("aa"));
 		assertFalse(n.accepts("ab"));
 		assertFalse(n.accepts("abc"));
-		
+
 		gesamtPunkte++;
 	}
 
@@ -844,7 +844,7 @@ public class Ab1Tests {
 		assertFalse(n.accepts("aa"));
 		assertFalse(n.accepts("ab"));
 		assertFalse(n.accepts("abc"));
-		
+
 		gesamtPunkte++;
 	}
 
@@ -1118,7 +1118,7 @@ public class Ab1Tests {
 		assertFalse(n.accepts("aa"));
 		assertTrue(n.accepts("ab"));
 		assertTrue(n.accepts("abc"));
-		
+
 		gesamtPunkte++;
 	}
 
@@ -1209,6 +1209,17 @@ public class Ab1Tests {
 		assertFalse(n.acceptsEpsilonOnly());
 		assertTrue(n.accepts("a"));
 		assertTrue(n.accepts("aa"));
+		assertFalse(n.accepts("ab"));
+		assertTrue(n.accepts("abc"));
+
+		////////////////////////
+
+		n = n9.complement();
+		assertFalse(n.acceptsNothing());
+		assertTrue(n.acceptsEpsilon());
+		assertFalse(n.acceptsEpsilonOnly());
+		assertTrue(n.accepts("a"));
+		assertTrue(n.accepts("aa"));
 		assertTrue(n.accepts("ab"));
 		assertTrue(n.accepts("abc"));
 
@@ -1244,10 +1255,10 @@ public class Ab1Tests {
 		assertTrue(n.accepts("aa"));
 		assertFalse(n.accepts("ab"));
 		assertFalse(n.accepts("abc"));
-		
+
 		gesamtPunkte++;
 	}
-	
+
 	@Test
 	public void NFA_Equals() {
 
@@ -1261,13 +1272,12 @@ public class Ab1Tests {
 		for (int i = 0; i < nfas.size(); i++)
 			for (int j = i + 1; j < nfas.size(); j++)
 				assertFalse(nfas.get(i).equals(nfas.get(j)));
-		
+
 		gesamtPunkte++;
 	}
 
 	@Test
 	public void ToDFA() {
-
 		testToDFA(n1);
 		testToDFA(n2);
 		testToDFA(n3);
