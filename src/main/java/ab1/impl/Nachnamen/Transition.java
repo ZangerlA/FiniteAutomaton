@@ -2,9 +2,9 @@ package ab1.impl.Nachnamen;
 
 public class Transition {
 
-    private int fromState;
-    private int toState;
-    private Character reading;
+    private final int fromState;
+    private final int toState;
+    private final Character reading;
 
     public Transition(int fromState, int toState, Character reading) {
         this.fromState = fromState;

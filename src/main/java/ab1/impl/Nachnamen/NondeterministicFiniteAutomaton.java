@@ -4,10 +4,7 @@ import ab1.DFA;
 import ab1.NFA;
 import ab1.exceptions.IllegalCharacterException;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class NondeterministicFiniteAutomaton implements NFA {
 
@@ -50,37 +47,39 @@ public class NondeterministicFiniteAutomaton implements NFA {
         else throw new IllegalArgumentException();
     }
 
-    /**
-     * i is FromState, j is ToState, value is possible characters for this transition.
-     * @return Transition Matrix
-     */
+    @SuppressWarnings("unchecked")
     @Override
     public Set<Character>[][] getTransitions() {
-        Set<Character>[][] result = new Set[numStates][numStates];
-        Set<Character> charSet = new HashSet<>();
+        Set<Character>[][] transitions = new Set[this.numStates][this.numStates];
 
-        for (int i = 0; i < result.length; i++) {
-            for (int j = 0; j < result[0].length; j++) {
-                charSet.clear();
-                for (Transition t : transitions) {
-                    if (t.getFromState() == i && t.getToState() == j) {
-                        charSet.add(t.getReading());
-                    }
-                }
-                result[i][j] = new HashSet<>(charSet);
+        for (int i = 0; i < this.numStates; i++) {
+            for (int j = 0; j < this.numStates; j++) {
+                transitions[i][j] = new HashSet<>();
             }
         }
-        return result;
+
+        this.transitions.forEach(transition -> transitions[transition.getFromState()][transition.getToState()].add(transition.getReading()));
+
+        return transitions;
+    }
+
+    /**
+     * Returns the transitions exactly how they're saved in the object
+     *
+     * @return The set of transitions
+     */
+    public Set<Transition> getRawTransitions() {
+        return this.transitions;
     }
 
     /**
      * Add a new transition to this FA.
      *
      * @param fromState fromState
-     * @param c
-     * @param toState toState
-     * @throws IllegalStateException
-     * @throws IllegalCharacterException
+     * @param c         character
+     * @param toState   toState
+     * @throws IllegalStateException     State is not in NFA
+     * @throws IllegalCharacterException Character is not in Alphabet
      */
     @Override
     public void setTransition(int fromState, Character c, int toState) throws IllegalStateException, IllegalCharacterException {
@@ -96,30 +95,26 @@ public class NondeterministicFiniteAutomaton implements NFA {
     /**
      * Remove all Transitions with character c and fromState from transitions
      *
-     * @param fromState Ausgangszustand
-     * @param c das Zeichen
-     * @throws IllegalStateException
+     * @param fromState Starting state
+     * @param c Character
+     * @throws IllegalStateException State is not in NFA
      */
     @Override
     public void clearTransitions(int fromState, Character c) throws IllegalStateException {
         if (numStates < fromState) {
             throw new IllegalStateException();
         }
-        for (Transition t : transitions) {
-            if (t.getFromState() == fromState && t.getReading() == c) {
-                transitions.remove(t);
-            }
-        }
+        transitions.removeIf(t -> t.getFromState() == fromState && t.getReading() == c);
     }
 
     /**
      * Get all possible next states for character c and State state from transitions.
      *
      * @param state State
-     * @param c Character
-     * @return
-     * @throws IllegalCharacterException
-     * @throws IllegalStateException
+     * @param c     Character
+     * @return Set of next states
+     * @throws IllegalCharacterException Character is not in alphabet
+     * @throws IllegalStateException State is not in NFA
      */
     @Override
     public Set<Integer> getNextStates(int state, Character c) throws IllegalCharacterException, IllegalStateException {
@@ -147,44 +142,112 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     @Override
     public NFA union(NFA a) {
-        // TODO
-        return null;
+
+        Set<Character> alphabet = new HashSet<>(this.alphabet);
+        alphabet.addAll(a.getAlphabet());
+
+        Set<Integer> acceptingStates = new HashSet<>();
+        Set<Integer> acceptingStatesThis = new HashSet<>();
+        Set<Integer> acceptingStatesA = new HashSet<>();
+
+        this.acceptingStates.forEach(state -> acceptingStatesThis.add(state + 1));
+        a.getAcceptingStates().forEach(state -> acceptingStatesA.add(state + this.numStates + 1));
+
+        acceptingStates.addAll(acceptingStatesThis);
+        acceptingStates.addAll(acceptingStatesA);
+
+        NFA unionNFA = new NondeterministicFiniteAutomaton(this.numStates + a.getNumStates() + 1, alphabet, acceptingStates, 0);
+
+        this.transitions.forEach(transition -> unionNFA.setTransition(transition.getFromState() + 1, transition.getReading(), transition.getToState() + 1));
+
+        ((NondeterministicFiniteAutomaton) a).getRawTransitions().forEach(transition -> unionNFA.setTransition(transition.getFromState() + this.numStates + 1, transition.getReading(), transition.getToState() + this.numStates + 1));
+
+        unionNFA.setTransition(0, null, this.initialState + 1);
+        unionNFA.setTransition(0, null, a.getInitialState() + this.numStates + 1);
+
+        return unionNFA;
     }
 
     @Override
     public NFA intersection(NFA a) {
-        // TODO
-        return null;
+        return this.complement().union(a.complement()).toDFA().complement();
     }
 
     @Override
     public NFA minus(NFA a) {
-        // TODO
-        return null;
+        return this.intersection(a.complement());
     }
 
     @Override
     public NFA concat(NFA a) {
-        // TODO
+
+        Set<Character> alphabet = new HashSet<>(this.alphabet);
+        alphabet.addAll(a.getAlphabet());
+
+        Set<Integer> acceptingStates = new HashSet<>(this.acceptingStates);
+        Set<Integer> acceptingStatesA = new HashSet<>(a.getAcceptingStates());
+
+        a.getAcceptingStates().forEach(state -> acceptingStatesA.add(state + this.numStates + 1));
+
+        acceptingStates.addAll(acceptingStatesA);
+
+        NFA concatNFA = new NondeterministicFiniteAutomaton(this.numStates + a.getNumStates() + 1, alphabet, acceptingStates, this.initialState);
+
+        this.transitions.forEach(transition -> concatNFA.setTransition(transition.getFromState(), transition.getReading(), transition.getToState()));
+
+        ((NondeterministicFiniteAutomaton) a).getRawTransitions().forEach(transition -> concatNFA.setTransition(transition.getFromState() + this.numStates + 1, transition.getReading(), transition.getToState() + this.numStates + 1));
+
+        concatNFA.setTransition(this.numStates, null, a.getInitialState() + this.numStates + 1);
+
         return null;
     }
 
     @Override
     public NFA complement() {
-        // TODO
-        return null;
+
+        DFA dfa = this.toDFA();
+
+        Set<Integer> acceptingStates = new HashSet<>();
+
+        for (int i = 0; i < this.numStates; i++) {
+            if (!dfa.getAcceptingStates().contains(i)) acceptingStates.add(i);
+        }
+
+        NFA complementNFA = new NondeterministicFiniteAutomaton(dfa.getNumStates(), dfa.getAlphabet(), dfa.getAcceptingStates(), dfa.getInitialState());
+
+        ((DeterministicFiniteAutomaton) dfa).getRawTransitions().forEach(transition -> complementNFA.setTransition(transition.getFromState(), transition.getReading(), transition.getToState()));
+
+        return complementNFA;
     }
 
     @Override
     public NFA kleeneStar() {
-        // TODO
-        return null;
+
+        Set<Integer> acceptingStates = new HashSet<>(this.acceptingStates);
+
+        acceptingStates.add(this.initialState);
+
+        NFA kleeneStarNFA = new NondeterministicFiniteAutomaton(this.numStates, this.alphabet, acceptingStates, this.initialState);
+
+        acceptingStates.forEach(state -> kleeneStarNFA.setTransition(state, null, this.initialState));
+
+        this.transitions.forEach(transition -> kleeneStarNFA.setTransition(transition.getFromState(), transition.getReading(), transition.getToState()));
+
+        return kleeneStarNFA;
     }
 
     @Override
     public NFA plus() {
-        // TODO
-        return null;
+
+        Set<Integer> acceptingStates = new HashSet<>(this.acceptingStates);
+
+        acceptingStates.forEach(state -> this.setTransition(state, null, this.initialState));
+
+        NFA plusNFA = new NondeterministicFiniteAutomaton(this.numStates, this.alphabet, acceptingStates, this.initialState);
+
+        this.transitions.forEach(transition -> plusNFA.setTransition(transition.getFromState(), transition.getReading(), transition.getToState()));
+
+        return plusNFA;
     }
 
     /**
@@ -242,6 +305,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     /**
      * Find the accepting states for a DFA from the index created from the NFA
+     *
      * @param subStateIndex the index for subStates
      * @return all accepting States
      */
@@ -259,15 +323,15 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     /**
      * Find all reachable states with the given character c from state initialState.
-     * @param initialState
-     * @param c
+     *
+     * @param initialState The start to start searching from
+     * @param c            The character to check
      * @return Set of states that are reachable.
      */
     private Set<Integer> findReachableStates(int initialState, Character c) {
-        Set<Integer> states = new HashSet<>();
         // Find all reachable states with c or epsilon and add them to a subset for the DFA
-        Set<Integer> nextStatesForC = getNextStates(initialState,c);
-        states.addAll(nextStatesForC);
+        Set<Integer> nextStatesForC = getNextStates(initialState, c);
+        Set<Integer> states = new HashSet<>(nextStatesForC);
         for (Integer state : nextStatesForC) {
             states.addAll(findReachableStatesEpsilon(state));
         }
@@ -278,9 +342,33 @@ public class NondeterministicFiniteAutomaton implements NFA {
     }
 
     /**
+     * Recursively finds all states that are reachable without epsilon transitions from a given state
+     *
+     * @return Set reachable states
+     */
+    private Set<Integer> findReachableAcceptingStatesNonEpsilon(int initialState) {
+        return findReachableAcceptingStatesNonEpsilon(initialState, new HashSet<>());
+    }
+
+    private Set<Integer> findReachableAcceptingStatesNonEpsilon(int initialState, Set<Integer> resultStates) {
+        if (resultStates.contains(initialState)) return resultStates;
+
+        this.alphabet.stream().filter(Objects::nonNull).forEach(character ->
+                getNextStates(initialState, character).forEach(state -> {
+                    if (this.acceptingStates.contains(state)) {
+                        resultStates.add(state);
+                    }
+                    findReachableAcceptingStatesNonEpsilon(state, resultStates);
+                })
+        );
+        return resultStates;
+    }
+
+    /**
      * Recursively find all reachable states via epsilon transitions from a given initialState.
-     * @param initialState
-     * @param resultStates
+     *
+     * @param initialState The state to start searching from
+     * @param resultStates The set of reachable states
      * @return Set of states that are reachable.
      */
     private Set<Integer> findReachableStatesEpsilon(int initialState, Set<Integer> resultStates) {
@@ -325,7 +413,20 @@ public class NondeterministicFiniteAutomaton implements NFA {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return this.toDFA().equals(obj);
+    public boolean equals(Object b) {
+        DFA dfaB;
+        DFA dfaA = this.toDFA();
+        if (b instanceof DFA) {
+            dfaB = ((DFA) b);
+        } else if (b instanceof NFA){
+            dfaB = ((NFA) b).toDFA();
+        } else {
+            throw new IllegalArgumentException("b should be of type NFA");
+        }
+
+        NFA diffAB = dfaA.minus(dfaB);
+        NFA diffBA = dfaB.minus(dfaA);
+
+        return diffAB.acceptsNothing() && diffBA.acceptsNothing();
     }
 }

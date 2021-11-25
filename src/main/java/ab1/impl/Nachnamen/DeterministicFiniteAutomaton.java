@@ -1,6 +1,7 @@
 package ab1.impl.Nachnamen;
 
 import ab1.DFA;
+import ab1.NFA;
 import ab1.exceptions.IllegalCharacterException;
 
 import java.util.HashSet;
@@ -57,14 +58,11 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public boolean isInAcceptingState() {
-        if (super.acceptingStates.contains(currentState)) {
-            return true;
-        } else return false;
+        return super.acceptingStates.contains(currentState);
     }
 
     @Override
     public Boolean accepts(String w) throws IllegalCharacterException{
-        this.reset();
         char [] word = w.toCharArray();
         for (int i = 0; i <= word.length; i++) {
             if (i == word.length && isInAcceptingState()){
@@ -77,16 +75,38 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
                         return false;
                     }
                 }
-                catch (IllegalCharacterException e){
-                    return false;
-                }
-                catch (IllegalStateException e){
+                catch (IllegalCharacterException | IllegalStateException e){
                     return false;
                 }
 
             }
         }
         return false;
+    }
+    /**
+     * Returns the transitions exactly how they're saved in the object
+     *
+     * @return The set of transitions
+     */
+    public Set<Transition> getRawTransitions() {
+        return this.transitions;
+    }
+
+    @Override
+    public boolean equals(Object b) {
+        DFA dfaB;
+        if (b instanceof DFA) {
+            dfaB = ((DFA) b);
+        } else if (b instanceof NFA) {
+            dfaB = ((NFA) b).toDFA();
+        } else {
+            throw new IllegalArgumentException("b should be of type NFA");
+        }
+
+        NFA diffAB = this.minus(dfaB);
+        NFA diffBA = dfaB.minus(this);
+
+        return diffAB.acceptsNothing() && diffBA.acceptsNothing();
     }
 
     @Override
@@ -176,10 +196,5 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
     }
 }
