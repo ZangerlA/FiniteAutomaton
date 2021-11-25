@@ -90,6 +90,11 @@ public class NondeterministicFiniteAutomaton implements NFA {
         if (!alphabet.contains(c)) {
             throw new IllegalCharacterException();
         }
+        for (Transition t: transitions) {
+            if (t.getFromState() == fromState && t.getReading() == c && t.getToState() == toState){
+                return;
+            }
+        }
         transitions.add(new Transition(fromState, toState, c));
     }
 
