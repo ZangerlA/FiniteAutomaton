@@ -186,6 +186,11 @@ public class NondeterministicFiniteAutomaton implements NFA {
         return this.intersection(a.complement());
     }
 
+    /**
+     * Attach one automaton to the other with an epsilon transition in between.
+     * @param a der anzuhängende Automat
+     * @return The new NFA
+     */
     @Override
     public NFA concat(NFA a) {
 
@@ -208,6 +213,11 @@ public class NondeterministicFiniteAutomaton implements NFA {
         return concatNFA;
     }
 
+    /**
+     * Invert the accepting states of this NFA.
+     *
+     * @return the new NFA
+     */
     @Override
     public NFA complement() {
 
@@ -228,6 +238,11 @@ public class NondeterministicFiniteAutomaton implements NFA {
         return complementNFA;
     }
 
+    /**
+     * Add a new state in front of the NFA for epsilon word. Set epsilon transition back to start for * repeatings of the word.
+     *
+     * @return The new NFA
+     */
     @Override
     public NFA kleeneStar() {
 
@@ -248,6 +263,11 @@ public class NondeterministicFiniteAutomaton implements NFA {
         return kleeneStarNFA;
     }
 
+    /**
+     * Set epsilon transitions to the start to repeat the word n times.
+     *
+     * @return The new NFA
+     */
     @Override
     public NFA plus() {
 
@@ -400,10 +420,14 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
     @Override
     public boolean subSetOf(NFA b) {
-        // TODO
-        return false;
+        return this.minus(b.toDFA()).acceptsNothing();
     }
 
+    /**
+     * Two FA's are equal if they accept nothing after subtracting one from the other.
+     * @param b Returns true if FA1 equals FA2.
+     * @return
+     */
     @Override
     public boolean equals(Object b) {
         DFA dfaB;

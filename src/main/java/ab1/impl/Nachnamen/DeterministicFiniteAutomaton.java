@@ -24,6 +24,13 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         return currentState;
     }
 
+    /**
+     * Get the next state and set the current state to the next state, return -1 if there is no transition(Trap)
+     * @param c das abzuarbeitende Zeichen
+     * @return the current State
+     * @throws IllegalCharacterException
+     * @throws IllegalStateException
+     */
     @Override
     public int doStep(char c) throws IllegalCharacterException, IllegalStateException {
         currentState = getNextState(currentState, c);
@@ -61,6 +68,12 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         return super.acceptingStates.contains(currentState);
     }
 
+    /**
+     * Read a word character by character and follow transitions, if ending in an accepting state return true
+     * @param w das abzuarbeitende Wort
+     * @return Returns true if the DFA accepts this word
+     * @throws IllegalCharacterException
+     */
     @Override
     public Boolean accepts(String w) throws IllegalCharacterException {
         this.reset();
@@ -85,6 +98,9 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         return false;
     }
 
+    /**
+     * Add a trap State and its transitions to this DFA. Used for complement.
+     */
     public void addTrapState() {
         super.trapState = this.getNumStates();
         this.setNumStates(this.getNumStates() + 1);
@@ -120,6 +136,9 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         return this.transitions;
     }
 
+    /**
+     * See NFA.equals()
+     */
     @Override
     public boolean equals(Object b) {
         DFA dfaB;
@@ -172,6 +191,12 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         return result;
     }
 
+    /**
+     * Traverse the FA and find all reachable states. (Used for acceptsEpsilonOnly() and acceptsNothing())
+     * @param initialState
+     * @param resultStates
+     * @return All reachable states of this FA
+     */
     public Set<Integer> traverseAutomaton(Integer initialState, Set<Integer> resultStates) {
         if (resultStates.contains(initialState)) {
             return resultStates;
