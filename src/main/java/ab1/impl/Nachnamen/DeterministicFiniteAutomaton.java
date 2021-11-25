@@ -62,23 +62,21 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
     }
 
     @Override
-    public Boolean accepts(String w) throws IllegalCharacterException{
+    public Boolean accepts(String w) throws IllegalCharacterException {
         this.reset();
-        char [] word = w.toCharArray();
+        char[] word = w.toCharArray();
         for (int i = 0; i <= word.length; i++) {
-            if (i == word.length && isInAcceptingState()){
+            if (i == word.length && isInAcceptingState()) {
                 return true;
             }
             if (currentState.equals(trapState)) {
                 return false;
-            }
-            else if (i < word.length){
+            } else if (i < word.length) {
                 try {
                     if (doStep(word[i]) == -1) {
                         return false;
                     }
-                }
-                catch (IllegalCharacterException | IllegalStateException e){
+                } catch (IllegalCharacterException | IllegalStateException e) {
                     return false;
                 }
 
@@ -89,12 +87,12 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     public void addTrapState() {
         super.trapState = this.getNumStates();
-        this.setNumStates(this.getNumStates()+1);
-        for (int i = 0; i < this.getNumStates()-1; i++) {
+        this.setNumStates(this.getNumStates() + 1);
+        for (int i = 0; i < this.getNumStates() - 1; i++) {
             Set<Character> tempAlphabet = new HashSet<>(this.alphabet);
             tempAlphabet.remove(null);
             for (Transition t : transitions) {
-                if(t.getFromState() == i) {
+                if (t.getFromState() == i) {
                     tempAlphabet.remove(t.getReading());
                 }
             }
@@ -141,12 +139,12 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
 
     @Override
     public Boolean acceptsNothing() {
-        if (this.getAcceptingStates() == null || this.getAcceptingStates().isEmpty()){
+        if (this.getAcceptingStates() == null || this.getAcceptingStates().isEmpty()) {
             return true;
         }
-        Set<Integer> starttoend = traverseAutomaton(initialState, new HashSet<>());
-        for (Integer i: starttoend) {
-            if (getAcceptingStates().contains(i)){
+        Set<Integer> startToEnd = traverseAutomaton(initialState, new HashSet<>());
+        for (Integer i : startToEnd) {
+            if (getAcceptingStates().contains(i)) {
                 return false;
             }
         }
@@ -187,8 +185,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
                 resultStates.add(initialState);
                 traverseAutomaton(t.getToState(), resultStates);
 
-            }
-            else {
+            } else {
                 resultStates.add(initialState);
             }
         }
@@ -198,40 +195,5 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
     @Override
     public Boolean acceptsEpsilon() {
         return accepts("");
-    }
-
-    public Boolean initialToEndState(){
-        Set<Integer> cStates = new HashSet<>();
-        cStates.add(initialState);
-        Set<Integer> nStates = new HashSet<>();
-
-        for (Integer i: cStates) {
-            for (Character c: alphabet) {
-                for (Transition t: transitions) {
-                    if (t.getReading() == c && t.getFromState() == i){
-                        if (nStates != null) {
-                            nStates.add(t.getToState());
-                        }
-                    }
-                }
-            }
-            if (cStates != null) {
-                for (Integer is: cStates) {
-                    if (nStates != null) {
-                        nStates.remove(is);
-                    }
-                }
-            }
-            cStates = nStates;
-            nStates = null;
-            if (cStates != null) {
-                for (Integer state: cStates) {
-                    if (acceptingStates.contains(state)){
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
     }
 }

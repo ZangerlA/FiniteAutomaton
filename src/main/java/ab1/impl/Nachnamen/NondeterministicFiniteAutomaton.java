@@ -4,7 +4,10 @@ import ab1.DFA;
 import ab1.NFA;
 import ab1.exceptions.IllegalCharacterException;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class NondeterministicFiniteAutomaton implements NFA {
 
@@ -44,8 +47,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
     public boolean isAcceptingState(int s) throws IllegalStateException {
         if (acceptingStates.contains(s)) {
             return true;
-        }
-        else throw new IllegalArgumentException();
+        } else throw new IllegalArgumentException();
     }
 
     @SuppressWarnings("unchecked")
@@ -90,8 +92,8 @@ public class NondeterministicFiniteAutomaton implements NFA {
         if (!alphabet.contains(c)) {
             throw new IllegalCharacterException();
         }
-        for (Transition t: transitions) {
-            if (t.getFromState() == fromState && t.getReading() == c && t.getToState() == toState){
+        for (Transition t : transitions) {
+            if (t.getFromState() == fromState && t.getReading() == c && t.getToState() == toState) {
                 return;
             }
         }
@@ -102,7 +104,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
      * Remove all Transitions with character c and fromState from transitions
      *
      * @param fromState Starting state
-     * @param c Character
+     * @param c         Character
      * @throws IllegalStateException State is not in NFA
      */
     @Override
@@ -120,7 +122,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
      * @param c     Character
      * @return Set of next states
      * @throws IllegalCharacterException Character is not in alphabet
-     * @throws IllegalStateException State is not in NFA
+     * @throws IllegalStateException     State is not in NFA
      */
     @Override
     public Set<Integer> getNextStates(int state, Character c) throws IllegalCharacterException, IllegalStateException {
@@ -292,15 +294,15 @@ public class NondeterministicFiniteAutomaton implements NFA {
                     if (subStateIndex.containsValue(subStates)) {
                         for (Integer key : subStateIndex.keySet()) {
                             if (subStateIndex.get(key).equals(subStates)) {
-                                transitionsDFA.add(new Transition(i,key,c));
+                                transitionsDFA.add(new Transition(i, key, c));
                             }
                         }
                     }
                     // If the state was not created yet, set Transition to a new state and safe in index.
                     else {
                         numStatesDFA++;
-                        transitionsDFA.add(new Transition(i,numStatesDFA-1,c));
-                        subStateIndex.put(numStatesDFA-1, new HashSet<>(subStates));
+                        transitionsDFA.add(new Transition(i, numStatesDFA - 1, c));
+                        subStateIndex.put(numStatesDFA - 1, new HashSet<>(subStates));
                     }
                 }
                 subStates.clear();
@@ -350,29 +352,6 @@ public class NondeterministicFiniteAutomaton implements NFA {
             states.addAll(getNextStates(i, c));
         }
         return states;
-    }
-
-    /**
-     * Recursively finds all states that are reachable without epsilon transitions from a given state
-     *
-     * @return Set reachable states
-     */
-    private Set<Integer> findReachableAcceptingStatesNonEpsilon(int initialState) {
-        return findReachableAcceptingStatesNonEpsilon(initialState, new HashSet<>());
-    }
-
-    private Set<Integer> findReachableAcceptingStatesNonEpsilon(int initialState, Set<Integer> resultStates) {
-        if (resultStates.contains(initialState)) return resultStates;
-
-        this.alphabet.stream().filter(Objects::nonNull).forEach(character ->
-                getNextStates(initialState, character).forEach(state -> {
-                    if (this.acceptingStates.contains(state)) {
-                        resultStates.add(state);
-                    }
-                    findReachableAcceptingStatesNonEpsilon(state, resultStates);
-                })
-        );
-        return resultStates;
     }
 
     /**
@@ -431,7 +410,7 @@ public class NondeterministicFiniteAutomaton implements NFA {
         DFA dfaA = this.toDFA();
         if (b instanceof DFA) {
             dfaB = ((DFA) b);
-        } else if (b instanceof NFA){
+        } else if (b instanceof NFA) {
             dfaB = ((NFA) b).toDFA();
         } else {
             throw new IllegalArgumentException("b should be of type NFA");
