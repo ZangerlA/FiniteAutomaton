@@ -229,15 +229,19 @@ public class NondeterministicFiniteAutomaton implements NFA {
     @Override
     public NFA kleeneStar() {
 
-        Set<Integer> acceptingStates = new HashSet<>(this.acceptingStates);
+        Set<Integer> acceptingStates = new HashSet<>();
 
-        acceptingStates.add(this.initialState);
+        this.acceptingStates.forEach(state -> acceptingStates.add(state + 1));
 
-        NFA kleeneStarNFA = new NondeterministicFiniteAutomaton(this.numStates, this.alphabet, acceptingStates, this.initialState);
+        acceptingStates.add(0);
 
-        acceptingStates.forEach(state -> kleeneStarNFA.setTransition(state, null, this.initialState));
+        NFA kleeneStarNFA = new NondeterministicFiniteAutomaton(this.numStates, this.alphabet, acceptingStates, 0);
 
-        this.transitions.forEach(transition -> kleeneStarNFA.setTransition(transition.getFromState(), transition.getReading(), transition.getToState()));
+        acceptingStates.forEach(state -> kleeneStarNFA.setTransition(state, null, 0));
+
+        kleeneStarNFA.setTransition(0, null, this.initialState + 1);
+
+        this.transitions.forEach(transition -> kleeneStarNFA.setTransition(transition.getFromState() + 1, transition.getReading(), transition.getToState() + 1));
 
         return kleeneStarNFA;
     }
