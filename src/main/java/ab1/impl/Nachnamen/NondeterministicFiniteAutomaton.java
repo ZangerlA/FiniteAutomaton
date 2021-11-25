@@ -211,13 +211,15 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
         DFA dfa = this.toDFA();
 
+        ((DeterministicFiniteAutomaton) dfa).addTrapState();
+
         Set<Integer> acceptingStates = new HashSet<>();
 
-        for (int i = 0; i < this.numStates; i++) {
+        for (int i = 0; i < dfa.getNumStates(); i++) {
             if (!dfa.getAcceptingStates().contains(i)) acceptingStates.add(i);
         }
 
-        NFA complementNFA = new NondeterministicFiniteAutomaton(dfa.getNumStates(), dfa.getAlphabet(), dfa.getAcceptingStates(), dfa.getInitialState());
+        NFA complementNFA = new NondeterministicFiniteAutomaton(dfa.getNumStates(), dfa.getAlphabet(), acceptingStates, dfa.getInitialState());
 
         ((DeterministicFiniteAutomaton) dfa).getRawTransitions().forEach(transition -> complementNFA.setTransition(transition.getFromState(), transition.getReading(), transition.getToState()));
 
