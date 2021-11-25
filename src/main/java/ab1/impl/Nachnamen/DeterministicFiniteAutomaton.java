@@ -69,7 +69,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
             if (i == word.length && isInAcceptingState()){
                 return true;
             }
-            if (currentState == trapState) {
+            if (currentState.equals(trapState)) {
                 return false;
             }
             else if (i < word.length){
@@ -94,7 +94,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
             Set<Character> tempAlphabet = this.alphabet;
             tempAlphabet.remove(null);
             for (Transition t : transitions) {
-                if(t.getFromState() == i && tempAlphabet.contains(t.getReading())) {
+                if(t.getFromState() == i) {
                     tempAlphabet.remove(t.getReading());
                 }
             }
@@ -168,6 +168,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         for (Integer reachable : reachableStates) {
             if (acceptingStates.contains(reachable) && reachable != initialState) {
                 result = false;
+                break;
             }
         }
         return result;
@@ -200,28 +201,34 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
     }
 
     public Boolean initialToEndState(){
-        Set<Integer> cStates = new HashSet<Integer>();
+        Set<Integer> cStates = new HashSet<>();
         cStates.add(initialState);
-        Set<Integer> nStates = new HashSet<Integer>();
+        Set<Integer> nStates = new HashSet<>();
 
         for (Integer i: cStates) {
             for (Character c: alphabet) {
                 for (Transition t: transitions) {
                     if (t.getReading() == c && t.getFromState() == i){
-                        nStates.add(t.getToState());
+                        if (nStates != null) {
+                            nStates.add(t.getToState());
+                        }
                     }
                 }
             }
-            for (Integer is: cStates) {
-                if (nStates.contains(is)){
-                    nStates.remove(is);
+            if (cStates != null) {
+                for (Integer is: cStates) {
+                    if (nStates != null) {
+                        nStates.remove(is);
+                    }
                 }
             }
             cStates = nStates;
             nStates = null;
-            for (Integer state: cStates) {
-                if (acceptingStates.contains(state)){
-                    return true;
+            if (cStates != null) {
+                for (Integer state: cStates) {
+                    if (acceptingStates.contains(state)){
+                        return true;
+                    }
                 }
             }
         }
