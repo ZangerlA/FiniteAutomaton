@@ -91,7 +91,7 @@ public class DeterministicFiniteAutomaton extends NondeterministicFiniteAutomato
         super.trapState = this.getNumStates();
         this.setNumStates(this.getNumStates()+1);
         for (int i = 0; i < this.getNumStates()-1; i++) {
-            Set<Character> tempAlphabet = this.alphabet;
+            Set<Character> tempAlphabet = new HashSet<>(this.alphabet);
             tempAlphabet.remove(null);
             for (Transition t : transitions) {
                 if(t.getFromState() == i) {
