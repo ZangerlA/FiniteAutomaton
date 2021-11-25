@@ -377,12 +377,14 @@ public class NondeterministicFiniteAutomaton implements NFA {
      * @return Set of states that are reachable.
      */
     private Set<Integer> findReachableStatesEpsilon(int initialState, Set<Integer> resultStates) {
-        if (resultStates.contains(initialState)) {
-            return resultStates;
-        }
+
         for (Integer state : getNextStates(initialState, null)) {
+            if (resultStates.contains(state)) {
+                return resultStates;
+            }
             resultStates.add(state);
             findReachableStatesEpsilon(state, resultStates);
+
         }
         return resultStates;
     }
