@@ -185,12 +185,9 @@ public class NondeterministicFiniteAutomaton implements NFA {
         Set<Character> alphabet = new HashSet<>(this.alphabet);
         alphabet.addAll(a.getAlphabet());
 
-        Set<Integer> acceptingStates = new HashSet<>(this.acceptingStates);
-        Set<Integer> acceptingStatesA = new HashSet<>(a.getAcceptingStates());
+        Set<Integer> acceptingStates = new HashSet<>();
 
-        a.getAcceptingStates().forEach(state -> acceptingStatesA.add(state + this.numStates + 1));
-
-        acceptingStates.addAll(acceptingStatesA);
+        a.getAcceptingStates().forEach(state -> acceptingStates.add(state + this.numStates + 1));
 
         NFA concatNFA = new NondeterministicFiniteAutomaton(this.numStates + a.getNumStates() + 1, alphabet, acceptingStates, this.initialState);
 
@@ -198,9 +195,10 @@ public class NondeterministicFiniteAutomaton implements NFA {
 
         ((NondeterministicFiniteAutomaton) a).getRawTransitions().forEach(transition -> concatNFA.setTransition(transition.getFromState() + this.numStates + 1, transition.getReading(), transition.getToState() + this.numStates + 1));
 
+        this.acceptingStates.forEach(state -> concatNFA.setTransition(state, null, this.numStates));
         concatNFA.setTransition(this.numStates, null, a.getInitialState() + this.numStates + 1);
 
-        return null;
+        return concatNFA;
     }
 
     @Override
