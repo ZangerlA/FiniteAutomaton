@@ -933,8 +933,8 @@ public class Ab1Tests {
 		assertFalse(n.acceptsNothing());
 		assertTrue(n.acceptsEpsilon());
 		assertFalse(n.acceptsEpsilonOnly());
-		//assertFalse(n.accepts("a"));
-		//assertFalse(n.accepts("aa"));
+		assertFalse(n.accepts("a"));
+		assertFalse(n.accepts("aa"));
 		assertTrue(n.accepts("ab"));
 		assertFalse(n.accepts("abc"));
 
@@ -944,8 +944,8 @@ public class Ab1Tests {
 		assertFalse(n.acceptsNothing());
 		assertTrue(n.acceptsEpsilon());
 		assertFalse(n.acceptsEpsilonOnly());
-		//assertFalse(n.accepts("a"));
-		//assertFalse(n.accepts("aa"));
+		assertFalse(n.accepts("a"));
+		assertFalse(n.accepts("aa"));
 		assertFalse(n.accepts("ab"));
 		assertFalse(n.accepts("abc"));
 
